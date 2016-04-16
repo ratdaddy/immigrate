@@ -12,7 +12,7 @@ gem 'immigrate'
 
 And then execute:
 
-    $ bundle
+    $ bundle install
 
 ## Usage
 

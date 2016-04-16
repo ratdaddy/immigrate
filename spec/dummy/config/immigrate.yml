@@ -1,0 +1,7 @@
+test:
+  foreign_server:
+    host: localhost
+    port: 5432
+    dbname: foreign_db
+    user: foreign_user
+    password: password
