@@ -1,5 +1,9 @@
 require 'immigrate/version'
+require 'immigrate/railtie'
+require 'immigrate/schema_statements'
 
 module Immigrate
-  # Your code goes here...
+  def self.load
+    ActiveRecord::ConnectionAdapters::AbstractAdapter.include Immigrate::SchemaStatements
+  end
 end

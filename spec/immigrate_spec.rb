@@ -5,7 +5,9 @@ describe Immigrate do
     expect(Immigrate::VERSION).not_to be nil
   end
 
-  it 'does something useful' do
-    expect(false).to eq(true)
+  context '.load' do
+    it 'exists' do
+      expect(described_class).to respond_to(:load)
+    end
   end
 end

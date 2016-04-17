@@ -8,5 +8,6 @@
 /spec/reports/
 /tmp/
 
+**/schema.rb
 *.log
 *.swp
