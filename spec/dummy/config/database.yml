@@ -2,4 +2,10 @@ test:
   adapter: postgresql
   encoding: unicode
   pool: 5
-  database: dummy_test
+  database: immigrate_dummy_test
+
+integration_test:
+  adapter: postgresql
+  encoding: unicode
+  pool: 5
+  database: immigrate_dummy_int_test
