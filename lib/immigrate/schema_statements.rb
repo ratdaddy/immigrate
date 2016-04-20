@@ -1,17 +1,17 @@
 module Immigrate
   module SchemaStatements
     def create_foreign_connection foreign_server
-      execute 'CREATE EXTENSION postgres_fdw'
+      enable_extension :postgres_fdw
     end
 
     def drop_foreign_connection foreign_server
-      execute 'DROP EXTENSION postgres_fdw'
+      disable_extension :postgres_fdw
     end
 
-    delegate :execute, to: :connection
+    delegate :enable_extension, :disable_extension, to: :connection
 
     def connection
-      @@connection ||= ActiveRecord::Base.connection
+      ActiveRecord::Base.connection
     end
   end
 end

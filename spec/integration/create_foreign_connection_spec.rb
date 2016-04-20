@@ -20,7 +20,8 @@ describe 'Foreign connection' do
       output = `RAILS_ENV=integration_test rake db:migrate 2>&1`
       expect($?.exitstatus).to eq(0), "rake db:migrate was unsuccessful, output:\n#{output}"
 
-      expect(connection.execute(extension_check).first['extname']).to eq('postgres_fdw')
+      expect(connection).to be_extension_enabled(:postgres_fdw),
+          'expected postgres_fdw extension to be enabled'
     end
 
     it 'is reverted by a rollback' do
@@ -28,21 +29,24 @@ describe 'Foreign connection' do
       output = `RAILS_ENV=integration_test rake db:rollback 2>&1`
 
       expect($?.exitstatus).to eq(0), "rake db:migrate was unsuccessful, output:\n#{output}"
-      expect(connection.execute(extension_check).to_a).to be_empty
+      expect(connection).not_to be_extension_enabled(:postgres_fdw),
+          'expected postgres_fdw extension to be disabled'
     end
   end
 
   it 'migrates from a generated model', :silence do
     create_connection_migration.migrate :up
 
-    expect(ActiveRecord::Base.connection.execute(extension_check).first['extname']).to eq('postgres_fdw')
+    expect(connection).to be_extension_enabled(:postgres_fdw),
+        'expected postgres_fdw extension to be enabled'
   end
 
   it 'reverts from a generated model', :silence do
     create_connection_migration.migrate :up
     create_connection_migration.migrate :down
 
-    expect(ActiveRecord::Base.connection.execute(extension_check).to_a).to be_empty
+    expect(connection).not_to be_extension_enabled(:postgres_fdw),
+        'expected postgres_fdw extension to be disabled'
   end
 
   def create_connection_migration
@@ -59,6 +63,10 @@ describe 'Foreign connection' do
     else
       Class.new(ActiveRecord::Migration, &block)
     end
+  end
+
+  def connection
+    Class.new { extend Immigrate::SchemaStatements }.connection
   end
 
   def extension_check
