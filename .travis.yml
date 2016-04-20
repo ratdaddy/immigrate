@@ -1,4 +1,15 @@
+addons:
+  postgresql: 9.4
+
 language: ruby
 rvm:
   - 2.3.0
+  - 2.2.4
+  - 2.1.8
+  - 2.0.0
+  - 1.9.3
+
 before_install: gem install bundler -v 1.11.2
+
+before_script:
+  (cd spec/dummy && bundle exec rake db:create)

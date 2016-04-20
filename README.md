@@ -1,5 +1,7 @@
 # Immigrate
 
+[![Build Status](https://travis-ci.org/ratdaddy/immigrate.svg?branch=master)](https://travis-ci.org/ratdaddy/immigrate)
+
 Immigrate adds methods to `ActiveRecord::Migration` to create and manage [foreign-data wrappers](http://www.postgresql.org/docs/current/static/postgres-fdw.html) in PostgreSQL.
 
 ## Installation
