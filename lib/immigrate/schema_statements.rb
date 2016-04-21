@@ -1,10 +1,10 @@
 module Immigrate
   module SchemaStatements
-    def create_foreign_connection foreign_server
+    def create_foreign_connection _foreign_server
       enable_extension :postgres_fdw
     end
 
-    def drop_foreign_connection foreign_server
+    def drop_foreign_connection _foreign_server
       disable_extension :postgres_fdw
     end
 
