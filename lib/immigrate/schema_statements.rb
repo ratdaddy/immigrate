@@ -1,33 +1,17 @@
 module Immigrate
   module SchemaStatements
-    def create_foreign_connection _foreign_server
-      enable_extension :postgres_fdw
-
-      db_config = database_configuration[Rails.env]
-      server = db_config.keys.first
-      server_config = db_config[server]
-      execute <<-SQL
-        CREATE SERVER #{server}
-        FOREIGN DATA WRAPPER postgres_fdw
-        OPTIONS (host '#{server_config['host']}',
-                 port '#{server_config['port']}',
-                 dbname '#{server_config['dbname']}')
-      SQL
+    def create_foreign_connection foreign_server
+      database.create_fdw_extension
+      database.create_server_connection foreign_server
     end
 
     def drop_foreign_connection _foreign_server
-      disable_extension :postgres_fdw
+      database.drop_fdw_extension
     end
 
-    delegate :execute, :enable_extension, :disable_extension, to: :connection
-
-    def connection
-      ActiveRecord::Base.connection
-    end
-
-    def database_configuration
-      yaml = Pathname.new('config/immigrate.yml')
-      YAML.load(ERB.new(yaml.read).result)
+  private
+    def database
+      Immigrate.database
     end
   end
 end

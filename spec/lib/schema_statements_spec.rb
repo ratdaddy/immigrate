@@ -1,41 +1,39 @@
 require 'spec_helper'
-require 'immigrate/schema_statements'
 
 module Immigrate
   describe SchemaStatements do
-    subject { Class.new { extend SchemaStatements }.connection }
-
-    before :each do
-      allow(subject).to receive(:database_configuration).and_return(
-          'test' => {
-            'some_foreign_server' => {
-              'host' => 'some_foreign_host',
-              'port' => 'some_foreign_port',
-              'dbname' => 'some_foreign_db'
-          }})
-    end
+    let(:connection) { Class.new { extend SchemaStatements }}
+    let(:database) { Immigrate.database }
 
     describe '#create_foreign_connection' do
+      before :each do
+        allow(database).to receive(:create_fdw_extension)
+        allow(database).to receive(:create_server_connection)
+      end
+
       it 'creates the fdw extension' do
         connection.create_foreign_connection :foreign_server
 
-        expect(connection).to be_extension_enabled(:postgres_fdw),
-            'expected postgres_fdw extension to be enabled'
+        expect(database).to have_received(:create_fdw_extension)
+      end
+
+      it 'creates the server connection' do
+        connection.create_foreign_connection :foreign_server
+
+        expect(database).to have_received(:create_server_connection).with(:foreign_server)
       end
     end
 
-    describe '#drop_foreign_connection' do
+    describe 'drop_foreign_connection' do
+      before :each do
+        allow(database).to receive(:drop_fdw_extension)
+      end
+
       it 'drops the fdw extension' do
-        connection.create_foreign_connection :foreign_server
         connection.drop_foreign_connection :foreign_server
 
-        expect(connection).not_to be_extension_enabled(:postgres_fdw),
-            'expected postgres_fdw extension to be disabled'
+        expect(database).to have_received(:drop_fdw_extension)
       end
-    end
-
-    def connection
-      Class.new { extend SchemaStatements }.connection
     end
   end
 end
