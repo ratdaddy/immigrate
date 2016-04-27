@@ -9,6 +9,7 @@ module Immigrate
       before :each do
         allow(database).to receive(:create_fdw_extension)
         allow(database).to receive(:create_server_connection)
+        allow(database).to receive(:create_user_mapping)
       end
 
       it 'creates the fdw extension' do
@@ -21,6 +22,12 @@ module Immigrate
         connection.create_foreign_connection :foreign_server
 
         expect(database).to have_received(:create_server_connection).with(:foreign_server)
+      end
+
+      it 'creates a user mapping' do
+        connection.create_foreign_connection :foreign_server
+
+        expect(database).to have_received(:create_user_mapping).with(:foreign_server)
       end
     end
 

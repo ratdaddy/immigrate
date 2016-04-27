@@ -46,6 +46,7 @@ describe 'Foreign connection' do
 
       expect(connection).to be_extension_enabled(:postgres_fdw), 'expected postgres_fdw extension to be enabled'
       expect(foreign_server.first['srvoptions']).to eq('{host=localhost,port=5432,dbname=foreign_db}')
+      expect(user_mapping.first['umoptions']).to eq("{user=foreign_user,password=password}")
     end
 
     it 'reverts from a generated model', :silence do
@@ -73,7 +74,19 @@ describe 'Foreign connection' do
     end
 
     def foreign_server
-      connection.execute "SELECT * FROM pg_catalog.pg_foreign_server WHERE srvname = 'foreign_server'"
+      connection.execute("SELECT * FROM pg_foreign_server WHERE srvname = 'foreign_server'")
+    end
+
+    def user_mapping
+      connection.execute <<-SQL
+        SELECT *
+        FROM pg_user_mappings
+        WHERE srvname = 'foreign_server' AND usename = '#{current_user}'
+      SQL
+    end
+
+    def current_user
+      connection.execute("SELECT CURRENT_USER").first['current_user']
     end
   end
 end
