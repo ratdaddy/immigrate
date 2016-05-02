@@ -21,6 +21,7 @@ describe 'Foreign connection' do
       expect($?.exitstatus).to eq(0), "rake db:migrate was unsuccessful, output:\n#{output}"
 
       expect(connection).to be_extension_enabled(:postgres_fdw), 'expected postgres_fdw extension to be enabled'
+      expect(foreign_table(:posts).count).to eq(1)
     end
 
     it 'is reverted by a rollback' do
@@ -28,6 +29,7 @@ describe 'Foreign connection' do
       output = `RAILS_ENV=integration_test rake db:rollback 2>&1`
 
       expect($?.exitstatus).to eq(0), "rake db:migrate was unsuccessful, output:\n#{output}"
+      expect(foreign_table(:posts).count).to eq(0)
       expect(connection).not_to be_extension_enabled(:postgres_fdw), 'expected postgres_fdw extension to be disabled'
     end
   end
@@ -41,26 +43,58 @@ describe 'Foreign connection' do
 
     let(:connection) { ActiveRecord::Base.connection }
 
-    it 'migrates from a generated model', :silence do
-      create_connection_migration.migrate :up
+    context 'create connection' do
+      it 'migrates from a generated model', :silence do
+        create_connection_migration.migrate :up
 
-      expect(connection).to be_extension_enabled(:postgres_fdw), 'expected postgres_fdw extension to be enabled'
-      expect(foreign_server.first['srvoptions']).to eq('{host=localhost,port=5432,dbname=foreign_db}')
-      expect(user_mapping.first['umoptions']).to eq("{user=foreign_user,password=password}")
+        expect(connection).to be_extension_enabled(:postgres_fdw), 'expected postgres_fdw extension to be enabled'
+        expect(foreign_server.first['srvoptions']).to eq('{host=localhost,port=5432,dbname=foreign_db}')
+        expect(user_mapping.first['umoptions']).to eq("{user=foreign_user,password=password}")
+        expect(foreign_server.count).to eq(1)
+      end
+
+      it 'reverts from a generated model', :silence do
+        create_connection_migration.migrate :up
+        create_connection_migration.migrate :down
+
+        aggregate_failures do
+          expect(foreign_server.count).to eq(0)
+          expect(connection).not_to be_extension_enabled(:postgres_fdw), 'expected postgres_fdw extension to be disabled'
+        end
+      end
+
+      def create_connection_migration
+        new_migration do
+          def change
+            create_foreign_connection :foreign_server
+          end
+        end
+      end
     end
 
-    it 'reverts from a generated model', :silence do
-      create_connection_migration.migrate :up
-      create_connection_migration.migrate :down
+    context 'create table' do
+      it 'migrates from a generated model', :silence do
+        connection.create_foreign_connection :foreign_server
+        create_table_migration.migrate :up
 
-      expect(connection).not_to be_extension_enabled(:postgres_fdw), 'expected postgres_fdw extension to be disabled'
-      expect(foreign_server.count).to eq(0)
-    end
+        expect(foreign_table(:foreign_table).count).to eq(1)
+      end
 
-    def create_connection_migration
-      new_migration do
-        def change
-          create_foreign_connection :foreign_server
+      it 'reverts from a generated model', :silence do
+        connection.create_foreign_connection :foreign_server
+        create_table_migration.migrate :up
+        create_table_migration.migrate :down
+
+        expect(foreign_table(:foreign_table).count).to eq(0)
+      end
+
+      def create_table_migration
+        new_migration do
+          def change
+            create_foreign_table :foreign_table, :foreign_server do |t|
+              t.string :some_string
+            end
+          end
         end
       end
     end
@@ -88,5 +122,9 @@ describe 'Foreign connection' do
     def current_user
       connection.execute("SELECT CURRENT_USER").first['current_user']
     end
+  end
+
+  def foreign_table name
+    connection.execute("SELECT * FROM information_schema.tables WHERE table_name='#{name}'")
   end
 end

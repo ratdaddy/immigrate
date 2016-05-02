@@ -57,6 +57,25 @@ Then you can run the migration as usual:
 $ rake db:mibrate
 ```
 
+Once you have a foreign connection you can now create migrations for the foreign tables you need to access in your application. This also goes in a standard migration file:
+
+```ruby
+class CreatePost < ActiveRecord::Migration[5.0]
+  def change
+    create_foreign_table :posts do |t|
+      t.string :title
+      t.text :body
+    end
+  end
+end
+```
+
+And once again you can run your migrations as usual:
+
+```sh
+$ rake db:mibrate
+```
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.

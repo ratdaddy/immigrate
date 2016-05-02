@@ -31,7 +31,7 @@ module Immigrate
       end
     end
 
-    describe 'drop_foreign_connection' do
+    describe '#drop_foreign_connection' do
       before :each do
         allow(database).to receive(:drop_fdw_extension)
       end
@@ -40,6 +40,54 @@ module Immigrate
         connection.drop_foreign_connection :foreign_server
 
         expect(database).to have_received(:drop_fdw_extension)
+      end
+    end
+
+    describe '#create_foreign_table' do
+      let(:foreign_table_def) { instance_double('ForeignTableDefinition') }
+
+      before :each do
+        allow(connection).to receive(:create_foreign_table_definition).and_return(foreign_table_def)
+        allow(database).to receive(:execute)
+        allow(foreign_table_def).to receive(:sql).and_return('test sql statement')
+      end
+
+      it 'gets a table definition object with the given table name' do
+        connection.create_foreign_table :foreign_table, :foreign_server
+
+        expect(connection).to have_received(:create_foreign_table_definition).with(:foreign_table, :foreign_server)
+      end
+
+      it 'yields the foreign_table_definition object to the given block' do
+        expect { |b| connection.create_foreign_table(:foreign_table, :foreign_server, &b) }.to yield_with_args(foreign_table_def)
+      end
+
+      it 'executes the sql representing the foreign_table_definition' do
+
+        connection.create_foreign_table :foreign_table, :foreign_server
+
+        expect(database).to have_received(:execute).with('test sql statement')
+      end
+    end
+
+    describe '#create_foreign_table_definition' do
+      it 'returns a ForeignTableDefinition object' do
+        foreign_table_definition = connection.create_foreign_table_definition(:foreign_table, :foreign_server)
+        expect(foreign_table_definition).to be_a(ForeignTableDefinition)
+        expect(foreign_table_definition.name).to be(:foreign_table)
+        expect(foreign_table_definition.server).to be(:foreign_server)
+      end
+    end
+
+    describe '#drop_foreign_table' do
+      before :each do
+        allow(database).to receive(:execute)
+      end
+
+      it 'drops the foreign table' do
+        connection.drop_foreign_table :foreign_table
+
+        expect(database).to have_received(:execute).with(include('DROP FOREIGN TABLE foreign_table'))
       end
     end
   end
