@@ -22,6 +22,7 @@ describe 'Foreign connection' do
 
       expect(connection).to be_extension_enabled(:postgres_fdw), 'expected postgres_fdw extension to be enabled'
       expect(foreign_table(:posts).count).to eq(1)
+      expect(foreign_schema(:posts).first).to include('column_name' => 'title', 'data_type' => 'character varying')
     end
 
     it 'is reverted by a rollback' do
@@ -78,6 +79,7 @@ describe 'Foreign connection' do
         create_table_migration.migrate :up
 
         expect(foreign_table(:foreign_table).count).to eq(1)
+        expect(foreign_schema(:foreign_table).first).to include('column_name' => 'some_string', 'data_type' => 'character varying')
       end
 
       it 'reverts from a generated model', :silence do
@@ -126,5 +128,9 @@ describe 'Foreign connection' do
 
   def foreign_table name
     connection.execute("SELECT * FROM information_schema.tables WHERE table_name='#{name}'")
+  end
+
+  def foreign_schema name
+    connection.execute("SELECT * FROM information_schema.columns WHERE table_name='#{name}'")
   end
 end

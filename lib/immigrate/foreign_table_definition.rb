@@ -13,7 +13,11 @@ module Immigrate
     end
 
     def sql
-      "CREATE FOREIGN TABLE #{name} () SERVER #{server}"
+      "CREATE FOREIGN TABLE #{name} (#{column_definitions}) SERVER #{server}"
+    end
+
+    def column_definitions
+      columns.map { |column| "#{column.first} character varying"}.join(',')
     end
   end
 end
