@@ -22,7 +22,8 @@ describe 'Foreign connection' do
 
       expect(connection).to be_extension_enabled(:postgres_fdw), 'expected postgres_fdw extension to be enabled'
       expect(foreign_table(:posts).count).to eq(1)
-      expect(foreign_schema(:posts).first).to include('column_name' => 'title', 'data_type' => 'character varying')
+      expect(foreign_schema(:posts)).to include('column_name' => 'title', 'data_type' => 'character varying')
+      expect(foreign_schema(:posts)).to include('column_name' => 'author', 'data_type' => 'character varying')
     end
 
     it 'is reverted by a rollback' do
@@ -79,7 +80,8 @@ describe 'Foreign connection' do
         create_table_migration.migrate :up
 
         expect(foreign_table(:foreign_table).count).to eq(1)
-        expect(foreign_schema(:foreign_table).first).to include('column_name' => 'some_string', 'data_type' => 'character varying')
+        expect(foreign_schema(:foreign_table)).to include('column_name' => 'some_string', 'data_type' => 'character varying')
+        expect(foreign_schema(:foreign_table)).to include('column_name' => 'another_string', 'data_type' => 'character varying')
       end
 
       it 'reverts from a generated model', :silence do
@@ -89,20 +91,48 @@ describe 'Foreign connection' do
 
         expect(foreign_table(:foreign_table).count).to eq(0)
       end
+    end
 
-      def create_table_migration
+    context 'drop table' do
+      it 'drops a previously migrated table', :silence do
+        connection.create_foreign_connection :foreign_server
+        create_table_migration.migrate :up
+        drop_table_migration.migrate :up
+
+        expect(foreign_table(:foreign_table).count).to eq(0)
+      end
+
+      def drop_table_migration
         new_migration do
           def change
-            create_foreign_table :foreign_table, :foreign_server do |t|
-              t.string :some_string
-            end
+            drop_foreign_table :foreign_table, :foreign_server
+          end
+        end
+      end
+    end
+
+    def create_table_migration
+      new_migration do
+        def change
+          create_foreign_table :foreign_table, :foreign_server do |t|
+            t.column :some_string, :string
+            t.string :another_string
+            t.text :some_text
+            t.integer :some_integer
+            t.float :some_float
+            t.decimal :some_decimal
+            t.datetime :some_datetime
+            t.time :some_time
+            t.date :some_date
+            t.binary :some_binary
+            t.boolean :some_boolean
           end
         end
       end
     end
 
     def new_migration &block
-      if ActiveRecord::Migration.respond_to? :'[]'
+      if ActiveRecord::Migration.respond_to? :[]
         Class.new(ActiveRecord::Migration[4.2], &block)
       else
         Class.new(ActiveRecord::Migration, &block)
@@ -131,6 +161,6 @@ describe 'Foreign connection' do
   end
 
   def foreign_schema name
-    connection.execute("SELECT * FROM information_schema.columns WHERE table_name='#{name}'")
+    connection.execute("SELECT column_name, data_type FROM information_schema.columns WHERE table_name='#{name}'")
   end
 end

@@ -1,11 +1,20 @@
 require 'spec_helper'
+require 'immigrate/foreign_table_definition'
 
 module Immigrate
   describe ForeignTableDefinition do
     subject { ForeignTableDefinition.new(:foreign_table, :foreign_server) }
 
+    describe '#column' do
+      it 'adds a column to the list' do
+        subject.column(:column_name, :column_type)
+
+        expect(subject.columns).to eq([[:column_name, :column_type]])
+      end
+    end
+
     describe '#string' do
-      it 'adds a name to the columns list' do
+      it 'adds a string to the columns list' do
         subject.string(:foreign_column)
 
         expect(subject.columns).to eq([[:foreign_column, :string]])

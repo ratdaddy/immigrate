@@ -1,6 +1,6 @@
 require 'immigrate/version'
 require 'immigrate/railtie'
-require 'immigrate/foreign_table_definition'
+#require 'immigrate/foreign_table_definition'
 require 'immigrate/schema_statements'
 require 'immigrate/database'
 

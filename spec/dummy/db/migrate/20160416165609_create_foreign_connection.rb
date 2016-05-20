@@ -4,10 +4,7 @@ class CreateForeignConnection < ActiveRecord::Migration
 
     create_foreign_table :posts, :foreign_server do |t|
       t.string :title
-    end
-
-    create_table :comments do |t|
-      t.string :author
+      t.column :author, :string
     end
   end
 end
