@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'immigrate/schema_statements'
 
 module Immigrate
   describe SchemaStatements do
