@@ -54,7 +54,7 @@ end
 Then you can run the migration as usual:
 
 ```sh
-$ rake db:mibrate
+$ rake db:migrate
 ```
 
 Once you have a foreign connection you can now create migrations for the foreign tables you need to access in your application. This also goes in a standard migration file:
@@ -62,7 +62,7 @@ Once you have a foreign connection you can now create migrations for the foreign
 ```ruby
 class CreatePost < ActiveRecord::Migration[5.0]
   def change
-    create_foreign_table :posts do |t|
+    create_foreign_table :posts, :foreign_server do |t|
       t.string :title
       t.text :body
     end
@@ -73,7 +73,7 @@ end
 And once again you can run your migrations as usual:
 
 ```sh
-$ rake db:mibrate
+$ rake db:migrate
 ```
 
 ## Development
