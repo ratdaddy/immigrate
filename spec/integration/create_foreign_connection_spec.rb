@@ -50,7 +50,7 @@ describe 'Foreign connection' do
         create_connection_migration.migrate :up
 
         expect(connection).to be_extension_enabled(:postgres_fdw), 'expected postgres_fdw extension to be enabled'
-        expect(foreign_server.first['srvoptions']).to eq('{host=localhost,port=5432,dbname=foreign_db}')
+        expect(foreign_server.first['srvoptions']).to eq('{dbname=foreign_db,host=localhost,port=5432,fetch_size=50}')
         expect(user_mapping.first['umoptions']).to eq("{user=foreign_user,password=password}")
         expect(foreign_server.count).to eq(1)
       end

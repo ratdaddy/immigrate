@@ -2,7 +2,7 @@ require 'spec_helper'
 
 module Immigrate
   describe ForeignTableDefinition do
-    subject { ForeignTableDefinition.new(:foreign_table, :foreign_server) }
+    subject { ForeignTableDefinition.new(:foreign_table, :foreign_server, { remote_table_name: 'test_table_name' }) }
 
     describe '#column' do
       it 'adds a column to the list' do

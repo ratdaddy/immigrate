@@ -1,4 +1,4 @@
-class CreateForeignConnection < ActiveRecord::Migration
+class CreateForeignConnection < ActiveRecord::Migration[ActiveRecord::Migration.current_version]
   def change
     create_foreign_connection :foreign_server
 

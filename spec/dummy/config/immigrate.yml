@@ -2,14 +2,16 @@ test:
   foreign_server:
     host: localhost
     port: 5432
-    dbname: foreign_db
+    database: foreign_db
     user: foreign_user
     password: password
+    fetch_size: 50 # default value explicitly
 
 integration_test:
   foreign_server:
     host: localhost
     port: 5432
-    dbname: foreign_db
+    database: foreign_db
     user: foreign_user
     password: password
+    fetch_size: 50 # default value explicitly

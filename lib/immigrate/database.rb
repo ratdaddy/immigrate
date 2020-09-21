@@ -9,31 +9,58 @@ module Immigrate
     end
 
     def create_server_connection server
-      server_config = database_configuration[Rails.env][server.to_s]
+      db_config = db_config(server)
+      db, host, port, fetch_size = db_config.slice('database', 'host', 'port', 'fetch_size').values
+      fetch_size ||= 50
+
       execute <<-SQL
         CREATE SERVER #{server}
         FOREIGN DATA WRAPPER postgres_fdw
-        OPTIONS (host '#{server_config['host']}',
-                 port '#{server_config['port']}',
-                 dbname '#{server_config['dbname']}')
+        OPTIONS (
+          dbname '#{db}',
+          host '#{host}',
+          port '#{port}',          
+          fetch_size '#{fetch_size}'
+        )
       SQL
     end
 
     def create_user_mapping server
-      server_config = database_configuration[Rails.env][server.to_s]
-      execute <<-SQL
+      db_config = db_config(server)
+      user, password = db_config.slice('user', 'password').values
+      # stmnt = <<-SQL
+      #   CREATE USER MAPPING FOR #{user}
+      #   SERVER #{server}
+      #   OPTIONS (
+      #     user '#{user}',
+      #     password '#{password}'
+      #   )
+      # SQL
+      # execute(stmnt) if user != current_user
+      stmnt = <<-SQL
         CREATE USER MAPPING FOR #{current_user}
         SERVER #{server}
-        OPTIONS (user '#{server_config['user']}',
-                 password '#{server_config['password']}')
+        OPTIONS (
+          user '#{user}',
+          password '#{password}'
+        )
       SQL
+      execute stmnt
+    end
+
+    def db_config(server)
+      return @db_config if defined?(@db_config)
+
+      config = database_configuration[Rails.env][server.to_s]
+      # if config['url'].present? - try refine db connection
+      @db_config = ActiveRecord::DatabaseConfigurations::UrlConfig.new(Rails.env, server, config['url'], config).config
     end
 
     def current_user
       execute("SELECT CURRENT_USER").first['current_user']
     end
 
-    delegate :execute, :enable_extension, :disable_extension, to: :connection
+    delegate :execute, :enable_extension, :disable_extension, :type_to_sql, to: :connection
 
     def connection
       ActiveRecord::Base.connection

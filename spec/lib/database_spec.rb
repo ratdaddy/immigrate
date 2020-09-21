@@ -27,8 +27,9 @@ module Immigrate
             'test' => {
               'some_foreign_server' => {
                 'host' => 'some_foreign_host',
-                'port' => 'some_foreign_port',
-                'dbname' => 'some_foreign_db'
+                'port' => 1234,
+                'database' => 'some_foreign_db',
+                'fetch_size' => 50
             }})
         subject.create_fdw_extension
       end
@@ -39,7 +40,7 @@ module Immigrate
         server = foreign_server(:some_foreign_server)
         expect(server.count).to eq(1)
         expect(server.first['srvoptions']).to(
-          eq('{host=some_foreign_host,port=some_foreign_port,dbname=some_foreign_db}'))
+          eq('{dbname=some_foreign_db,host=some_foreign_host,port=1234,fetch_size=50}'))
       end
 
       def foreign_server server_name

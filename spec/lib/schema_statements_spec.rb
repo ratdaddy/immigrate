@@ -54,9 +54,9 @@ module Immigrate
       end
 
       it 'gets a table definition object with the given table name' do
-        connection.create_foreign_table :foreign_table, :foreign_server
+        connection.create_foreign_table :foreign_table, :foreign_server, 'test_table_name'
 
-        expect(connection).to have_received(:create_foreign_table_definition).with(:foreign_table, :foreign_server)
+        expect(connection).to have_received(:create_foreign_table_definition).with(:foreign_table, :foreign_server, 'test_table_name')
       end
 
       it 'yields the foreign_table_definition object to the given block' do
@@ -73,10 +73,12 @@ module Immigrate
 
     describe '#create_foreign_table_definition' do
       it 'returns a ForeignTableDefinition object' do
-        foreign_table_definition = connection.create_foreign_table_definition(:foreign_table, :foreign_server)
+        foreign_table_definition = connection.create_foreign_table_definition(:foreign_table, :foreign_server, 'test_table_name')
         expect(foreign_table_definition).to be_a(ForeignTableDefinition)
         expect(foreign_table_definition.name).to be(:foreign_table)
         expect(foreign_table_definition.server).to be(:foreign_server)
+        expect(foreign_table_definition.database).to be_a(Immigrate::Database)
+        expect(foreign_table_definition.options).to eq({ remote_table_name: 'test_table_name', schema_name: 'public'})
       end
     end
 
