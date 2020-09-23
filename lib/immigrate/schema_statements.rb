@@ -1,7 +1,7 @@
 module Immigrate
   module SchemaStatements
     def create_foreign_connection foreign_server
-      database.create_fdw_extension
+      # database.create_fdw_extension
       database.create_server_connection foreign_server
       database.create_user_mapping foreign_server
     end
