@@ -1,7 +1,7 @@
 module Immigrate
   module SchemaStatements
     def create_foreign_connection foreign_server
-      # database.create_fdw_extension
+      # database.create_fdw_extension #check if exists, also superuser permissions required
       database.create_server_connection foreign_server
       database.create_user_mapping foreign_server
     end
@@ -23,7 +23,7 @@ module Immigrate
     end
 
     def drop_foreign_table foreign_table, _foreign_server = nil, _remote_table_name = nil
-      database.execute "DROP FOREIGN TABLE #{foreign_table}"
+      database.execute "DROP FOREIGN TABLE #{foreign_table} CASCADE;"
     end
 
   private
